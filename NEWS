@@ -1,0 +1,19 @@
+# scf 1.0.3
+
+* Created new mock data object for CRAN compliance.  Required altered testing across package.
+
+# scf 1.0.2
+
+* Minor nonfunctional error corrections to ensure CRAN compliance
+
+# scf 1.0.1
+
+* Minor nonfunctional changes to conform to CRAN submission standards
+* Fixed `scf_load()` to expunge non-functioning deprecated artifacts
+* removed scf_extract_implicates() as it lost utility in `scf_load()` rebuild
+
+# scf 1.0.0
+
+* Initial release of the `scf` package.
+* Implements functions for weighted, multiply-imputed SCF data analysis.
+* Known benign warning: `"non-integer #successes in a binomial glm!"` during logistic regression (see [Stack Overflow](https://stackoverflow.com/questions/12953045/warning-non-integer-successes-in-a-binomial-glm-survey-packages)).
