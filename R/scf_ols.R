@@ -38,18 +38,19 @@
 #' @examples
 #' # Do not implement these lines in real analysis:
 #' # Use functions `scf_download()` and `scf_load()`
-#' td  <- tempdir()
+#' td <- tempfile("ols_")
+#' dir.create(td)
+#' 
 #' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 #' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 #' scf2022 <- scf_load(2022, data_directory = td)
 #'
 #' # Example for real analysis: Run OLS model
 #' model <- scf_ols(scf2022, networth ~ income + age)
-#' print(model)
 #' summary(model)
 #' 
 #' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink("scf2022.rds", force = TRUE)
+#' unlink(td, recursive = TRUE, force = TRUE)
 #'
 #' @seealso [scf_glm()], [scf_logit()], [scf_MIcombine()]
 #' @importFrom stats coef vcov pt sd AIC deviance
@@ -118,7 +119,8 @@ scf_ols <- function(object, formula) {
     results = coefs,
     fit = diagnostics,
     imps = models,
-    call = match.call()
+    call = match.call(),
+    formula = formula
   )
   class(out) <- c("scf_ols", "scf_model_result")
   return(out)
@@ -144,3 +146,4 @@ print.scf_ols <- function(x, digits = 4, ...) {
   cat("      Use `summary(object$imps[[1]])` to inspect them.\n")
   invisible(x)
 }
+

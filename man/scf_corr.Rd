@@ -59,27 +59,29 @@ for covariates.
 
 Correlation is computed within each implicate using complete cases. Rubin’s
 Rules are applied manually to pool estimates and calculate total variance.
-Degrees of freedom are adjusted using the Barnard-Rubin method.
 This function does not use \code{\link[=scf_MIcombine]{scf_MIcombine()}}, which is intended
 for vector-valued estimates; direct pooling is more appropriate for
 scalar statistics like correlation coefficients.
 }
 
 \examples{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
-td  <- tempdir()
+# Ignore this code block.  It loads mock data for CRAN.
+# In your analysis, download and load your data using the
+# functions `scf_download()` and `scf_load()`
+td <- tempfile("corr_")
+dir.create(td)
+
 src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 scf2022 <- scf_load(2022, data_directory = td)
 
-# Example for real analysis: Estimate correlation between income and net worth
+# EXAMPLE IMPLEMENTATION OF `scf_corr()`:
 corr <- scf_corr(scf2022, ~income, ~networth)
 print(corr)
 summary(corr)
 
-# Do not implement these lines in real analysis: Cleanup for package check
-unlink("scf2022.rds", force = TRUE)
+# Ignore the code below.  It is for CRAN:
+unlink(td, recursive = TRUE, force = TRUE)
 
 }
 \seealso{

@@ -11,17 +11,19 @@ library(dplyr)
 library(scf)
 
 
-## -----------------------------------------------------------------------------
+## ----include = F--------------------------------------------------------------
 # Using Mock data with distribution
-td  <- tempdir()
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
-scf2022 <- scf_load(2022, data_directory = td)
+vtd <- file.path(tempdir(), "scf_vig")
+dir.create(vtd, showWarnings = FALSE)
 
-# Using real SCF data (uncomment to run)
+src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
+file.copy(src, file.path(vtd, "scf2022.rds"), overwrite = TRUE)
+scf2022 <- scf_load(2022, data_directory = vtd)
+
+## ----eval = F-----------------------------------------------------------------
 # scf2022 <- scf_download(2022)
 # scf2022 <- scf_load(scf2022)
-
+# 
 
 ## -----------------------------------------------------------------------------
 
@@ -69,6 +71,7 @@ scf_implicates(freq_table, long = TRUE)
 
 ## ----include = F--------------------------------------------------------------
 # Cleanup to avoid NOTE about leftover files
-if (exists("scf2022")) rm(scf2022)
-unlink(file.path(td, "scf2022.rds"), force = TRUE)
+try(unlink(file.path(vtd, "scf2022.rds"), force=TRUE), silent=TRUE)
+try(unlink(vtd, recursive=TRUE, force=TRUE), silent=TRUE)
+rm(vtd)
 

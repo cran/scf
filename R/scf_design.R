@@ -1,11 +1,14 @@
 #' Construct SCF Core Data Object
 #'
+#' This is a helper function for the [scf_download()] and [scf_load()] functions. 
 #' Wrap a list of replicate-weighted survey designs into an "scf_mi_survey".
-#' Typically called by [scf_load()].
+#' Typically called by [scf_load()]. The function creates a complex object that
+#' includes the Survey's five implicates, along with the year and an 
+#' estimate of the total U.S. households in that year.
 #'
 #' @description
 #' Stores SCF microdata as five implicate-specific designs created by
-#' [survey::svrepdesign()]. Raw implicate data frames are not retained.
+#' [survey::svrepdesign()].
 #'
 #' @param design A list of five [survey::svrepdesign()] objects (one per implicate).
 #' @param year Numeric SCF survey year (e.g., 2022).
@@ -19,14 +22,17 @@
 #' }
 #'
 #' @examples
-#' # Do not implement these lines in real analysis:
-#' # Use functions `scf_download()` and `scf_load()`
-#' td  <- tempdir()
+#' # Ignore this code block.  It loads mock data for CRAN.
+#' # In your analysis, download and load your data using the
+#' # functions `scf_download()` and `scf_load()`
+#' td <- tempfile("design_")
+#' dir.create(td)
+#' 
 #' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 #' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 #' scf2022 <- scf_load(2022, data_directory = td)
 #'
-#' # Example for real analysis: Construct scf_mi_survey object
+#' # EXAMPLE IMPLEMENTATION: Construct scf_mi_survey object
 #' obj <- scf_design(
 #'   design = scf2022$mi_design,
 #'   year = 2022,
@@ -35,8 +41,8 @@
 #' class(obj)
 #' length(obj$mi_design)
 #' 
-#' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink("scf2022.rds", force = TRUE)
+#' # Ignore the code below.  It is for CRAN:
+#' unlink(td, recursive = TRUE, force = TRUE)
 #'
 #' @seealso [scf_load()], [scf_update()]
 #' @export
@@ -45,4 +51,16 @@ scf_design <- function(design, year, n_households) {
     stop("`design` must be a list of `svrep.design` objects (one per implicate).")
   structure(list(mi_design = design, year = year, n_households = n_households),
             class = "scf_mi_survey")
+}
+
+#' @export
+print.scf_mi_survey <- function(x, ...) {
+  cat("SCF Multiply-Imputed Survey Object\n")
+  cat("----------------------------------\n")
+  cat("Year:          ", x$year, "\n", sep = "")
+  cat("Households (N):", format(x$n_households, big.mark = ","), "\n", sep = "")
+  cat("Implicates:    ", length(x$mi_design), "\n", sep = "")
+  cat("Replicate weights per implicate:",
+      ncol(x$mi_design[[1]]$repweights), "\n")
+  invisible(x)
 }

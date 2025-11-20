@@ -35,7 +35,9 @@
 #' \donttest{
 #' # Do not implement these lines in real analysis:
 #' # Use functions `scf_download()` and `scf_load()`
-#' td  <- tempdir()
+#' td <- tempfile("logit_")
+#' dir.create(td)
+#' 
 #' src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
 #' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 #' scf2022 <- scf_load(2022, data_directory = td)
@@ -45,7 +47,7 @@
 #' summary(model)
 #'
 #' # Do not implement these lines in real analysis: Cleanup for package check
-#' unlink(file.path(td, "scf2022.rds"), force = TRUE)
+#' unlink(td, recursive = TRUE, force = TRUE)
 #' }
 #' 
 #' @section Warning:
@@ -97,7 +99,8 @@ scf_logit <- function(object, formula, odds = TRUE, ...) {
     results = model$results,
     imps = model$models,
     fit = model$fit,
-    call = match.call()
+    call = match.call(),
+    formula = formula
   )
   class(out) <- c("scf_logit", "scf_model_result")
   return(out)

@@ -384,16 +384,8 @@ survey object using <code>scf_download()</code> and
 <code>scf_load()</code>. The result is an <code>scf_mi_survey</code>
 object that contains replicate-weighted survey designs for each
 implicate.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># Using Mock data with distribution</span></span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>td  <span class="ot">&lt;-</span> <span class="fu">tempdir</span>()</span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>src <span class="ot">&lt;-</span> <span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="st">&quot;scf2022_mock_raw.rds&quot;</span>, <span class="at">package =</span> <span class="st">&quot;scf&quot;</span>)</span>
-<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="fu">file.copy</span>(src, <span class="fu">file.path</span>(td, <span class="st">&quot;scf2022.rds&quot;</span>), <span class="at">overwrite =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span>
-<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>scf2022 <span class="ot">&lt;-</span> <span class="fu">scf_load</span>(<span class="dv">2022</span>, <span class="at">data_directory =</span> td)</span>
-<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a></span>
-<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="co"># Using real SCF data (uncomment to run)</span></span>
-<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a><span class="co"># scf2022 &lt;- scf_download(2022)</span></span>
-<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a><span class="co"># scf2022 &lt;- scf_load(scf2022)</span></span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>scf2022 <span class="ot">&lt;-</span> <span class="fu">scf_download</span>(<span class="dv">2022</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>scf2022 <span class="ot">&lt;-</span> <span class="fu">scf_load</span>(scf2022)</span></code></pre></div>
 </div>
 <div id="creating-and-transforming-variables" class="section level2">
 <h2>2. Creating and Transforming Variables</h2>
@@ -422,26 +414,26 @@ Rules. Use <code>by =</code> for grouped statistics.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">scf_mean</span>(scf2022, <span class="sc">~</span>networth, <span class="at">by =</span> <span class="sc">~</span>senior)</span>
 <span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="co">#&gt; Multiply-Imputed, Replicate-Weighted Mean Estimate</span></span>
 <span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt;  group variable  estimate        se     min       max</span></span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt;  FALSE networth  809777.2  23912.24  771184  821626.9</span></span>
-<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt;   TRUE networth 1595858.8 203948.10 1355046 1812726.0</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt;  group variable  estimate       se     min       max</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt;  FALSE networth  809777.2 135477.9  771184  821626.9</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt;   TRUE networth 1595858.8 483053.9 1355046 1812726.0</span></span>
 <span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="fu">scf_median</span>(scf2022, <span class="sc">~</span>income, <span class="at">by =</span> <span class="sc">~</span>female)</span>
 <span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="co">#&gt; Multiply-Imputed Median Estimate</span></span>
 <span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co">#&gt;   group variable quantile estimate       se      min      max</span></span>
-<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co">#&gt;  Female   income      0.5 49721.94   0.0000 49721.94 49721.94</span></span>
-<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="co">#&gt;    Male   income      0.5 85824.40 592.0398 85392.03 86472.95</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co">#&gt;    Male   income      0.5 85824.40 6488.425 85392.03 86472.95</span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="co">#&gt;  Female   income      0.5 49721.94 5304.311 49721.94 49721.94</span></span>
 <span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="fu">scf_percentile</span>(scf2022, <span class="sc">~</span>networth, <span class="at">q =</span> <span class="fl">0.9</span>)</span>
-<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="co">#&gt; Multiply-Imputed Percentile Estimate</span></span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="co">#&gt; SCF Percentile Estimate (SCF Bulletin convention)</span></span>
 <span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a><span class="co">#&gt;  variable quantile estimate       se     min     max</span></span>
-<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co">#&gt;  networth      0.9  1197722 116410.8 1039600 1360000</span></span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co">#&gt;  networth      0.9  1197722 393453.4 1039600 1360000</span></span>
 <span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="fu">scf_percentile</span>(scf2022, <span class="sc">~</span>networth, <span class="at">q =</span> <span class="fl">0.75</span>, <span class="at">by =</span> <span class="sc">~</span>female)</span>
-<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="co">#&gt; Multiply-Imputed Percentile Estimate</span></span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="co">#&gt; SCF Percentile Estimate (SCF Bulletin convention)</span></span>
 <span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="co">#&gt;   group variable quantile estimate       se    min    max</span></span>
-<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a><span class="co">#&gt;  Female networth     0.75   238504  1842.52 237680 241800</span></span>
-<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a><span class="co">#&gt;    Male networth     0.75   642660 31637.37 623800 698700</span></span></code></pre></div>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="co">#&gt;   group variable quantile estimate        se    min    max</span></span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a><span class="co">#&gt;    Male networth     0.75   642660 192745.73 623800 698700</span></span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a><span class="co">#&gt;  Female networth     0.75   238504  56917.53 237680 241800</span></span></code></pre></div>
 </div>
 <div id="hypothesis-tests" class="section level2">
 <h2>4. Hypothesis Tests</h2>

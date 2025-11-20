@@ -7,20 +7,22 @@ MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/
 version](https://img.shields.io/badge/R-%3E%3D%203.6-blue.svg)](https://cran.r-project.org/)
 [![Lifecycle:
 stable](https://img.shields.io/badge/lifecycle-stable-blue.svg)](https://lifecycle.r-lib.org/articles/stages.html)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/scf)](https://cran.r-project.org/package=scf)
 
 ## Overview
 
 The `scf` R package provides a structured, reproducible, and
-pedagogically-aware toolkit for analyzing the U.S. Federal Reserve’s
+pedagogically-conscious toolkit for analyzing the U.S. Federal Reserve’s
 **Survey of Consumer Finances (SCF)**, one of the highest-quality data
 sources for information on U.S. households’ balance sheets and income
 statements.
 
-It wraps replicate-weighted, multiply-imputed SCF data into a consistent
-object class (`scf_mi_survey`) and offers end-to-end support for
-weighted descriptive statistics, hypothesis testing, regression
-modeling, and high-quality visualizations—while transparently
-incorporating Rubin’s Rules and complex sample design.
+It wraps replicate-weighted, multiply-imputed SCF data into through a custom
+data object (`scf_mi_survey`) with which users can implement custom
+easy-to-use functions for generating proper population estimates for
+descriptive statistics, hypothesis testing, regression
+modeling, and high-quality visualizations.
 
 ## Table of Contents
 
@@ -45,7 +47,7 @@ incorporating Rubin’s Rules and complex sample design.
 - `scf_freq()`: Weighted frequency tables for categorical variables.
 - `scf_xtab()`: Cross-tabulations by row, column, or cell percentages.
 - `scf_mean()`, `scf_median()`, `scf_percentile()`: Computes groupwise
-  or overall statistics using Rubin’s Rules.
+  or overall statistics using Rubin’s Rules or a commensurate methodology.
 - `scf_corr()`: Weighted Pearson correlations.
 
 ### Statistical Inference
@@ -64,6 +66,10 @@ incorporating Rubin’s Rules and complex sample design.
 - `scf_glm()`: Generalized linear models (e.g., logistic, Poisson).
 - `scf_logit()`: Wrapper for logistic regression with optional odds
   ratio output.
+  
+All model functions (scf_ols, scf_glm, scf_logit) return objects of class 
+`scf_model_result`, with methods for `coef()`, `vcov()`, `predict()`, `AIC()`, 
+`residuals()`, and `summary()`.
 
 ### Visualization
 
@@ -78,21 +84,15 @@ incorporating Rubin’s Rules and complex sample design.
 
 ### Diagnostics and Output
 
-- `scf_implicates()`: Extracts implicate-level results from SCF objects.
 - `print()`, `summary()`: Custom methods for clean, interpretable output
   in analysis and teaching.
 
 ## Installation
 
-The `scf` package is not yet on CRAN. To install the development version
-from GitHub:
+Install the latest version of the package through CRAN:
 
 ``` r
-# Install devtools if you don't already have it
-install.packages("devtools")
-
-# Install the SCF package from GitHub
-devtools::install_github("jncohen/scf")
+install.packages("scf")
 ```
 
 The package requires **R ≥ 3.6** and the following packages:
@@ -118,10 +118,11 @@ scf_download(2022)
 scf2022 <- scf_load(2022)
 ```
 
-```r
-# Using mock data for CRAN compliance
+```r, include = F
+# This document will use mock data for CRAN compliance
+# use the above method to download and load data in your analysis instead of:
 scf2022 <- readRDS(system.file("extdata", "mock_scf2022.rds", package = "scf"))
-# NOTE: This is mock data for demonstration only. 
+# NOTE: Mock data for demonstration only. 
 # Use `scf_download()` and `scf_load()` for full SCF datasets.
 ```
 
@@ -246,20 +247,22 @@ For detailed examples, function documentation, and usage guides, consult
 the package vignettes and reference manual.
 
 - [SCF Homepage](https://github.com/jncohen/scf)
-- [**Reference Manual:** Click here](https://github.com/jncohen/scf/blob/v1.0/scf_1.0.4.pdf)
+- [**Reference Manual:** Click here](https://github.com/jncohen/scf/blob/v1.0/scf_1.0.5.pdf)
 
 ## Note on Mock Data
 
 This package includes a small mock dataset (`mock_scf2022.rds`) for testing purposes.  
 It includes only 75 rows and select variables. It is structurally valid,  
-but **not suitable for analytical use or inference**.
+but **not suitable for analytical use or inference**. Mock data objects carry a 
+"mock" = TRUE attribute and may trigger warnings in functions to discourage 
+interpretive use.
 
 
 ## Citation
 
 If you use `scf` in published work, please cite it as:
 
-> Joseph N. Cohen (2025). *scf: Tools for Analyzing the Survey of Consumer Finances.* R package. ver. 1.0.3. <https://github.com/jncohen/scf>
+> Joseph N. Cohen (2025). *scf: Tools for Analyzing the Survey of Consumer Finances.* R package. ver. 1.0.5. <https://github.com/jncohen/scf>
 
 Use `citation("scf")` in R for formatted references.
 
