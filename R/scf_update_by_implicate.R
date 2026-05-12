@@ -22,8 +22,11 @@
 #' - You need to derive a variable based on implicate-specific thresholds or bins
 #'
 #' @param object A `scf_mi_survey` object from [scf_load()].
-#' @param f A function that takes a data frame as input and returns a modified data frame.
-#'   This function will be applied independently to each implicate.
+#' @param f A function that takes one implicate's data frame as its sole argument
+#'   and returns a modified data frame with the same number of rows. The function
+#'   signature should be \code{function(df) \{ ... \}}. The returned data frame is
+#'   used to rebuild the replicate-weighted survey design.
+#'   
 #'
 #' @return A modified `scf_mi_survey` object with updated implicate-level designs.
 #'
@@ -36,10 +39,18 @@
 #' file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
 #' scf2022 <- scf_load(2022, data_directory = td)
 #'
+#' # Example for real analysis: flag households in the top 10% of net worth,
+#' # using the unweighted implicate-specific 90th percentile as the threshold.
+#' scf2022 <- scf_update_by_implicate(scf2022, function(df) {
+#'   threshold <- stats::quantile(df$networth, probs = 0.90, na.rm = TRUE)
+#'   df$top10nw <- df$networth >= threshold
+#'   df
+#' })
+#'
 #' # Example for real analysis: compute implicate-specific z-scores of income
 #' scf2022 <- scf_update_by_implicate(scf2022, function(df) {
 #'   mu <- mean(df$income, na.rm = TRUE)
-#'   sigma <- sd(df$income, na.rm = TRUE)
+#'   sigma <- stats::sd(df$income, na.rm = TRUE)
 #'   df$z_income <- (df$income - mu) / sigma
 #'   df
 #' })
@@ -57,17 +68,14 @@ scf_update_by_implicate <- function(object, f) {
     stop("Input must be a 'scf_mi_survey' object.")
   }
   if (!is.function(f)) {
-    stop("Argument 'f' must be a function that accepts and returns a data frame.")
+    stop("Argument 'f' must be a function that accepts a data frame and returns a data frame.")
   }
-  
-  # Extract implicates from replicate-weighted survey designs
-  implicates <- lapply(object$mi_design, function(design) design$variables)
-  
-  updated_implicates <- vector("list", length(implicates))
-  updated_designs <- vector("list", length(implicates))
-  
-  for (i in seq_along(implicates)) {
-    df <- implicates[[i]]
+
+  updated_designs    <- vector("list", length(object$mi_design))
+
+  for (i in seq_along(object$mi_design)) {
+    design <- object$mi_design[[i]]
+    df     <- design$variables
     new_df <- f(df)
     
     if (!is.data.frame(new_df)) {
@@ -84,13 +92,13 @@ scf_update_by_implicate <- function(object, f) {
       stop("Could not find replicate weight columns in implicate.")
     }
     
-    updated_implicates[[i]] <- new_df
     updated_designs[[i]] <- survey::svrepdesign(
       weights = ~wgt,
-      repweights = new_df[, rep_cols],
+      repweights = as.matrix(new_df[, rep_cols]),
       data = new_df,
-      type = "BRR",
-      fay.rho = 0.5,
+      type = "other",
+      scale = 1,
+      rscales = rep(1 / (length(rep_cols) - 1), length(rep_cols)),
       mse = TRUE,
       combined.weights = TRUE
     )

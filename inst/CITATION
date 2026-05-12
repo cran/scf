@@ -1,11 +1,18 @@
-citation_text <- "To cite the scf package in publications, please use:"
-
 bibentry(
   "Manual",
-  title = "scf: Tools for Analyzing the Survey of Consumer Finances",
+  title  = "scf: Analyzing the Survey of Consumer Finances",
   author = person("Joseph", "Cohen"),
-  year = "2025",
-  note = "R package version 1.0.1",
-  url = "https://github.com/jncohen/scf",
-  textVersion = citation_text
+  year   = "2026",
+  note   = "R package version 1.0.7",
+  url    = "https://github.com/jncohen/scf"
+)
+
+bibentry(
+  "Misc",
+  title       = "Analyzing the {Survey of Consumer Finances} with {scf}: {M}ethodology, {U}ser {G}uide, and {P}ackage {V}alidation",
+  author      = person("Joseph N.", "Cohen"),
+  year        = "2026",
+  type        = "Working Paper",
+  institution = "CUNY Queens College",
+  url         = "https://academicworks.cuny.edu/qc_pubs/695/"
 )

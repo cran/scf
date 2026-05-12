@@ -43,7 +43,7 @@
 #' scf2022 <- scf_load(2022, data_directory = td)
 #'
 #' # Example for real analysis: Run logistic regression
-#' model <- scf_logit(scf2022, own ~ age)
+#' model <- suppressWarnings(scf_logit(scf2022, own ~ hhsex))
 #' summary(model)
 #'
 #' # Do not implement these lines in real analysis: Cleanup for package check
@@ -99,6 +99,7 @@ scf_logit <- function(object, formula, odds = TRUE, ...) {
     results = model$results,
     imps = model$models,
     fit = model$fit,
+    vcov = model$vcov,
     call = match.call(),
     formula = formula
   )

@@ -81,6 +81,11 @@ scf_ols <- function(object, formula) {
   coefs_list <- lapply(coefs_list, function(x) x[common_terms])
   vars_list  <- lapply(vars_list, function(v) v[common_terms, common_terms, drop = FALSE])
 
+  # Drop the survey design from each model object after extracting what is
+  # needed. svyglm stores the full svrepdesign (data + 999 replicate weights)
+  # in $survey.design; keeping it multiplies object size by ~5x for no benefit.
+  models <- lapply(models, function(m) { m$survey.design <- NULL; m })
+
   pooled <- scf_MIcombine(coefs_list, vars_list)
 
   est  <- coef(pooled)
@@ -118,6 +123,7 @@ scf_ols <- function(object, formula) {
   out <- list(
     results = coefs,
     fit = diagnostics,
+    vcov = pooled$variance,
     imps = models,
     call = match.call(),
     formula = formula
@@ -125,6 +131,37 @@ scf_ols <- function(object, formula) {
   class(out) <- c("scf_ols", "scf_model_result")
   return(out)
 }
+#' @export
+#' @method summary scf_ols
+summary.scf_ols <- function(object, digits = 4, ...) {
+  cat("SCF OLS Regression Summary\n")
+  cat("--------------------------------------------------\n")
+
+  df <- object$results
+  df$estimate   <- round(df$estimate,   digits)
+  df$std.error  <- round(df$std.error,  digits)
+  df$t.value    <- round(df$t.value,    digits)
+  df$p.value    <- format.pval(df$p.value, digits = digits)
+
+  cat("Pooled Coefficient Estimates:\n")
+  print(df[, c("term", "estimate", "std.error", "t.value", "p.value", "stars")],
+        row.names = FALSE)
+
+  cat("\nModel Fit Statistics:\n")
+  with(object$fit, {
+    if (!is.null(r.squared) && !is.na(r.squared)) {
+      cat("  Mean R-squared: ", round(r.squared, digits),
+          " (SD: ", round(r.squared.sd, digits), ")\n", sep = "")
+    }
+    cat("  Mean AIC:       ", round(AIC, digits),
+        " (SD: ", round(AIC.sd, digits), ")\n", sep = "")
+  })
+
+  cat("\nCall:\n")
+  print(object$call)
+  invisible(object)
+}
+
 #' @export
 #' @method print scf_ols
 print.scf_ols <- function(x, digits = 4, ...) {

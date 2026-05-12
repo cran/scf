@@ -12,28 +12,6 @@
 #'
 #' @param min_year Integer. First SCF year to load (1989–2022, divisible by 3).
 #' @param max_year Integer. Last SCF year to load. Defaults to `min_year`.
-#' @param data_directory Character. A directory containing `.rds` files **or**
-#'   a full path to a single `.rds` file. Default: `"."`.
-#'
-#' @return Invisibly returns a `scf_mi_survey` (or named list if multiple years).
-#' Attributes: `mock` (logical), `year`, `n_households`.
-#'
-#' @seealso [scf_download()], [scf_design()], [scf_update()], [survey::svrepdesign()]
-#'
-#' Load SCF Data as Multiply-Imputed Survey Designs
-#'
-#' @description
-#' Converts SCF `.rds` files prepared by `scf_download()` into `scf_mi_survey`
-#' objects. Each object wraps five implicates per year in replicate-weighted,
-#' multiply-imputed survey designs suitable for use with `scf_` functions.
-#'
-#' @section Implementation:
-#' Provide a year or range and either (1) a directory containing `scf<year>.rds`
-#' files, or (2) a full path to a single `.rds` file. Files must contain five
-#' implicate data frames with columns `wgt` and `wt1b1..wt1bK` (typically K=999).
-#'
-#' @param min_year Integer. First SCF year to load (1989–2022, divisible by 3).
-#' @param max_year Integer. Last SCF year to load. Defaults to `min_year`.
 #' @param data_directory Character. Directory containing `.rds` files or a 
 #'   full path to a single `.rds` file. Defaults to the current working directory `"."`.
 #'   For examples and tests, use `tempdir()` to avoid leaving files behind.
@@ -89,8 +67,6 @@ scf_load <- function(min_year,
       next
     }
     
-    target_total <- household_totals[as.character(year)]
-    
     imp_list <- lapply(imp_list, function(df) {
       rep_cols <- grep("^wt1b", names(df), value = TRUE)
       df[rep_cols] <- lapply(df[rep_cols], as.numeric)
@@ -107,7 +83,7 @@ scf_load <- function(min_year,
         type = "other",
         scale = 1,
         rscales = rep(1 / 998, 999),
-        mse = FALSE,
+        mse = TRUE,
         combined.weights = TRUE
       )
     })
@@ -115,7 +91,7 @@ scf_load <- function(min_year,
     mi_obj <- scf_design(
       design = imp_designs,
       year = as.integer(year),
-      n_households = target_total
+      n_households = sum(imp_list[[1]]$wgt)
     )
     
     attr(mi_obj, "mock") <- FALSE

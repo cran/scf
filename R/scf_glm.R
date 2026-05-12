@@ -54,7 +54,7 @@
 #' scf2022 <- scf_load(2022, data_directory = td)
 #'
 #' # Example for real analysis: Run logistic regression
-#' model <- scf_glm(scf2022, own ~ age + factor(edcl), family = binomial())
+#' model <- suppressWarnings(scf_glm(scf2022, own ~ hhsex, family = binomial()))
 #' summary(model)
 #' 
 #' # Do not implement these lines in real analysis: Cleanup for package check
@@ -109,6 +109,11 @@ scf_glm <- function(object, formula, family = binomial()) {
   coefs_list <- lapply(coefs_list, function(x) x[common_terms])
   vars_list  <- lapply(vars_list, function(v) v[common_terms, common_terms, drop = FALSE])
 
+  # Drop the survey design from each model object after extracting what is
+  # needed. svyglm stores the full svrepdesign (data + 999 replicate weights)
+  # in $survey.design; keeping it multiplies object size by ~5x for no benefit.
+  models <- lapply(models, function(m) { m$survey.design <- NULL; m })
+
   pooled <- scf_MIcombine(coefs_list, vars_list)
 
   est  <- coef(pooled)
@@ -151,6 +156,7 @@ scf_glm <- function(object, formula, family = binomial()) {
   out <- list(
     results = coef_table,
     fit = fit_stats,
+    vcov = pooled$variance,
     models = models,
     call = match.call(),
     formula = formula

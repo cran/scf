@@ -2,12 +2,12 @@
 #'
 #' This function formats and aligns coefficient estimates, standard errors, and
 #' significance stars from one or more SCF regression model objects
-#' (e.g., from \code{scf_ols()}, \code{scf_logit()}, or \code{scf_glm()}). 
+#' (e.g., from \code{scf_ols()}, \code{scf_logit()}, \code{scf_quantreg()}, or \code{scf_glm()}). 
 #'
 #' It compiles a side-by-side table with terms matched across models, appends
-#' model fit statistics (sample size N, R-squared or pseudo-R-squared, and AIC),
-#' and outputs the results as console text, Markdown for R Markdown documents,
-#' or a CSV file.
+#' model fit statistics (sample size N, R-squared or pseudo-R-squared, quantile tau,
+#' and AIC where applicable), and outputs the results as console text, Markdown for
+#' R Markdown documents, LaTeX for PDF compilation, or a CSV file.
 #'
 #' @param ... One or more SCF regression model objects, or a single list of such models.
 #' @param model.names Optional character vector naming the models. Defaults to
@@ -20,7 +20,8 @@
 #' @param labels Optional named character vector or labeling function to replace
 #'   term names with descriptive labels.
 #' @param output Output format: one of \code{"console"} (print to console),
-#'   \code{"markdown"} (print Markdown table for R Markdown), or \code{"csv"}
+#'   \code{"markdown"} (print Markdown table for R Markdown), \code{"latex"}
+#'   (print LaTeX table for PDF compilation), or \code{"csv"}
 #'   (write CSV file).
 #' @param file File path for CSV output; required if \code{output = "csv"}.
 #'
@@ -30,8 +31,17 @@
 #' The function aligns all unique coefficient terms across provided models, formats
 #' coefficients with significance stars and standard errors, appends model fit
 #' statistics as additional rows, and renders output in the specified format.
-#' It avoids external dependencies by using base R formatting and simple text or
-#' Markdown output.
+#'
+#' Fit statistics rows are automatically selected based on model class:
+#' \describe{
+#'   \item{All models}{Sample size (N)}
+#'   \item{OLS models}{R-squared and AIC}
+#'   \item{Logit/GLM models}{Pseudo-R-squared and AIC}
+#'   \item{Quantile regression}{Quantile tau, R1(tau), and adjusted R1(tau)}
+#' }
+#' 
+#' It avoids external dependencies by using base R formatting and simple text,
+#' Markdown, LaTeX, or CSV output.
 #'
 #' @examples
 #' # Do not implement these lines in real analysis:
@@ -58,7 +68,7 @@ scf_regtable <- function(...,
                          digits = 0,
                          auto_digits = FALSE,
                          labels = NULL,
-                         output = c("console", "markdown", "csv"),
+                         output = c("console", "markdown", "latex", "csv"),
                          file = NULL) {
   
   models <- list(...)
@@ -122,8 +132,27 @@ scf_regtable <- function(...,
     }
   }
   
-  # Prepare fit statistics rows: N, R2 or pseudo-R2, AIC
-  fit_terms <- c("N", "R2", "AIC")
+  # ========================================================================
+  # DETERMINE FIT STATISTICS ROWS DYNAMICALLY
+  # ========================================================================
+  # Check if any model is quantile regression
+  is_quantreg <- any(sapply(models, function(m) inherits(m, "scf_quantreg")))
+  is_logit <- any(sapply(models, function(m) inherits(m, "scf_logit")))
+  
+  # Build fit terms list dynamically
+  fit_terms <- c("N")
+  if (!is_quantreg) {
+    if (is_logit) {
+      fit_terms <- c(fit_terms, "PseudoR2")
+    } else {
+      fit_terms <- c(fit_terms, "R2")
+    }
+    fit_terms <- c(fit_terms, "AIC")
+  } else {
+    # For quantreg, add tau column
+    fit_terms <- c(fit_terms, "Tau", "R1", "R1(adj)")
+  }
+  
   fit_stats_mat <- matrix("--", nrow = length(fit_terms), ncol = n_models,
                           dimnames = list(fit_terms, model.names))
   
@@ -131,49 +160,65 @@ scf_regtable <- function(...,
     m <- models[[i]]
     
     # Fetch N
-    n <- NA_integer_
-    tryCatch({
-      n <- length(stats::residuals(m)) 
+    n <- tryCatch({
+      length(stats::residuals(m))
     }, error = function(e) {
-      # Fallback to old, manual logic if S3 method fails (for robustness)
+      # Fallback if S3 method fails: reach into stored implicate models directly
       if (!is.null(m$models) && length(m$models) > 0 && !is.null(m$models[[1]])) {
-        n <<- length(stats::residuals(m$models[[1]]))
+        length(stats::residuals(m$models[[1]]))
       } else if (!is.null(m$imps) && length(m$imps) > 0 && !is.null(m$imps[[1]])) {
-        n <<- length(stats::residuals(m$imps[[1]]))
+        length(stats::residuals(m$imps[[1]]))
+      } else {
+        NA_integer_
       }
     })
     
-    # Fetch AIC
-    aic_val <- NA_real_
-    tryCatch({
-      aic_val <- stats::AIC(m)
-    }, error = function(e) {
-      # Fallback to old, manual logic
-      aic_val <<- if (!is.null(m$fit$AIC)) m$fit$AIC else NA_real_
-    })
-    
-    # Detect binomial/logit family for pseudo-R2 usage 
-    is_binomial <- FALSE
-    if (!is.null(m$family)) {
-      is_binomial <- inherits(m$family, "binomial")
-    }
-    if (!is_binomial && !is.null(m$models) && length(m$models) > 0) {
-      is_binomial <- inherits(m$models[[1]], "glm") &&
-        stats::family(m$models[[1]])$family == "binomial"
-    }
-    
-    # Get R2 or pseudo_R2 
-    r2_val <- NA_real_
-    if (inherits(m, "scf_logit") || is_binomial) {
-      r2_val <- if (!is.null(m$fit$pseudo_r2)) m$fit$pseudo_r2 else NA_real_
-    } else {
-      r2_val <- if (!is.null(m$fit$r.squared)) m$fit$r.squared else NA_real_
-    }
-    
-    
     fit_stats_mat["N", i] <- if (!is.na(n)) as.character(n) else "--"
-    fit_stats_mat["R2", i] <- if (!is.na(r2_val)) formatC(r2_val, digits = 3, format = "f") else "--"
-    fit_stats_mat["AIC", i] <- if (!is.na(aic_val)) formatC(aic_val, digits = 0, format = "f") else "--"
+    
+    # Quantile regression: add tau
+    if (inherits(m, "scf_quantreg")) {
+      tau_val <- if (!is.null(m$tau)) m$tau else NA_real_
+      r1_val     <- if (!is.null(m$fit$r1))     m$fit$r1     else NA_real_
+      r1_adj_val <- if (!is.null(m$fit$r1_adj)) m$fit$r1_adj else NA_real_
+      
+      fit_stats_mat["R1", i] <-
+        if (!is.na(r1_val))     formatC(r1_val,     digits = 3, format = "f") else "--"
+      fit_stats_mat["R1(adj)", i] <-
+        if (!is.na(r1_adj_val)) formatC(r1_adj_val, digits = 3, format = "f") else "--"
+      fit_stats_mat["Tau", i] <- if (!is.na(tau_val)) formatC(tau_val, digits = 2, format = "f") else "--"
+    } else {
+      # Standard models: add R2/PseudoR2 and AIC
+      
+      # Fetch AIC
+      aic_val <- tryCatch({
+        stats::AIC(m)
+      }, error = function(e) {
+        if (!is.null(m$fit$AIC)) m$fit$AIC else NA_real_
+      })
+      
+      # Detect binomial/logit family for pseudo-R2 usage 
+      is_binomial <- FALSE
+      if (!is.null(m$family)) {
+        is_binomial <- inherits(m$family, "binomial")
+      }
+      if (!is_binomial && !is.null(m$models) && length(m$models) > 0) {
+        is_binomial <- inherits(m$models[[1]], "glm") &&
+          stats::family(m$models[[1]])$family == "binomial"
+      }
+      
+      # Get R2 or pseudo_R2 
+      r2_val <- NA_real_
+      r2_label <- "R2"
+      if (inherits(m, "scf_logit") || is_binomial) {
+        r2_val <- if (!is.null(m$fit$pseudo_r2)) m$fit$pseudo_r2 else NA_real_
+        r2_label <- "PseudoR2"
+      } else {
+        r2_val <- if (!is.null(m$fit$r.squared)) m$fit$r.squared else NA_real_
+      }
+      
+      fit_stats_mat[r2_label, i] <- if (!is.na(r2_val)) formatC(r2_val, digits = 3, format = "f") else "--"
+      fit_stats_mat["AIC", i] <- if (!is.na(aic_val)) formatC(aic_val, digits = 0, format = "f") else "--"
+    }
   }
   
   fit_stats_df <- data.frame(Term = fit_terms, fit_stats_mat, stringsAsFactors = FALSE)
@@ -206,11 +251,43 @@ scf_regtable <- function(...,
     invisible(out)
     
   } else if (output == "markdown") {
-    header <- paste0("| ", paste(colnames(out), collapse = " | "), " |")
-    separator <- paste0("|", paste(rep("---", ncol(out)), collapse = "|"), "|")
-    rows <- apply(out, 1, function(r) paste0("| ", paste(r, collapse = " | "), " |"))
+    # Escape LaTeX special characters across all columns
+    out_escaped <- out
+    out_escaped$Term <- gsub("_", "\\_", out_escaped$Term, fixed = TRUE)
+    out_escaped[] <- lapply(out_escaped, function(col) {
+      gsub("^", "\\^{}", col, fixed = TRUE)
+    })
+    
+    header <- paste0("| ", paste(colnames(out_escaped), collapse = " | "), " |")
+    separator <- paste0("|", paste(rep("---", ncol(out_escaped)), collapse = "|"), "|")
+    rows <- apply(out_escaped, 1, function(r) paste0("| ", paste(r, collapse = " | "), " |"))
     md_table <- paste(c(header, separator, rows), collapse = "\n")
     cat(md_table, "\n")
     invisible(md_table)
+    
+  } else if (output == "latex") {
+    # LaTeX table format using booktabs for nice horizontal lines
+    cat("\\begin{table}\n")
+    cat("\\centering\n")
+    cat("\\begin{tabular}{l", paste(rep("r", ncol(out) - 1), collapse = ""), "}\n", sep = "")
+    cat("\\toprule\n")
+    
+    # Header row
+    header <- paste(colnames(out), collapse = " & ")
+    cat(header, " \\\\\n")
+    cat("\\midrule\n")
+    
+    # Data rows - insert midrule before fit stats
+    n_coef <- nrow(out) - length(fit_terms)
+    for (i in seq_len(nrow(out))) {
+      row_str <- paste(out[i, ], collapse = " & ")
+      cat(row_str, " \\\\\n")
+      if (i == n_coef) cat("\\midrule\n")
+    }
+    
+    cat("\\bottomrule\n")
+    cat("\\end{tabular}\n")
+    cat("\\end{table}\n")
+    invisible(out)
   }
 }
