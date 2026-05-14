@@ -1,7 +1,7 @@
-699c6ff533b5d2f5dc3863e91e5e3582 *DESCRIPTION
+6fc5d9b695e9613e35f176f36361448d *DESCRIPTION
 2b6b1b31429d2910882310ce3097a983 *LICENSE
 953157257a85b6366f34674b8529a43c *NAMESPACE
-e889bd7eb99d6c69019e794a3dd4f6fe *NEWS
+c94d367d045abc120d1a5807c2818f44 *NEWS
 ef311a84fbaeb2df53c01b40974b4cfb *R/scf-package.R
 35a9a6ab5a7444af98e5e9b85a99d352 *R/scf_MIcombine.R
 f4ebe75e263ad2862cb3d1f3bbaacfd7 *R/scf_activate_theme.R
@@ -26,7 +26,7 @@ b325a293262eb4957e4c9cb05dddb2ce *R/scf_median.R
 68de66209e8c1f8b78d161d6a86a8d09 *R/scf_plot_dbar.R
 3204877270529be28e68506407c1baeb *R/scf_plot_dist.R
 748ea7d8e3cc3f59894fa9e7455ad6bd *R/scf_plot_hex.R
-40dd3848ff50ddb6bfae6c731e03b418 *R/scf_plot_hist.R
+48763b313dac9d6fe7b9aa29eb9324c5 *R/scf_plot_hist.R
 7ee0df6eb76631d20bb9bd1089c96870 *R/scf_plot_smooth.R
 410398c82fe0c32b697fb2b0f3d8a7ff *R/scf_prop_test.R
 ac4aef1173a45f483006651253c44c17 *R/scf_quantreg.R
