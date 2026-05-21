@@ -1,10 +1,11 @@
-6fc5d9b695e9613e35f176f36361448d *DESCRIPTION
+9754b99b765031d0eb4da48e2d06b9f5 *DESCRIPTION
 2b6b1b31429d2910882310ce3097a983 *LICENSE
 953157257a85b6366f34674b8529a43c *NAMESPACE
-c94d367d045abc120d1a5807c2818f44 *NEWS
+fa14023d28d0592ab66947836b461f57 *NEWS
 ef311a84fbaeb2df53c01b40974b4cfb *R/scf-package.R
 35a9a6ab5a7444af98e5e9b85a99d352 *R/scf_MIcombine.R
 f4ebe75e263ad2862cb3d1f3bbaacfd7 *R/scf_activate_theme.R
+c833aa19bf523ec7febad8feaf7fabc7 *R/scf_axis_text_x.R
 d55f74ed44601f56bcf1eff39e3a1bd2 *R/scf_corr.R
 838139c7769d94652127475da3e6142a *R/scf_deflate.R
 59e2731bd6f90e6bb5ff579a7d351d8a *R/scf_design.R
@@ -19,12 +20,12 @@ f03bc287c039989af06dc2ce0f4ba869 *R/scf_mean.R
 b325a293262eb4957e4c9cb05dddb2ce *R/scf_median.R
 95eae0785ff3e5eadb4a6f5276f31a87 *R/scf_model_methods.R
 3ea08fc83bd2906173157e95c9b76ba8 *R/scf_ols.R
-51cd86d7ea5628b0095bf79961ec8a98 *R/scf_pctile_sum.R
+560e158ff729d8f624c7528280331f33 *R/scf_pctile_sum.R
 4252417785f0c7fb9069a6109779393a *R/scf_percentile.R
 552a40edf59c59867a309ee26a205149 *R/scf_plot_bbar.R
-50d28418de5eec4386601d032e710004 *R/scf_plot_cbar.R
-68de66209e8c1f8b78d161d6a86a8d09 *R/scf_plot_dbar.R
-3204877270529be28e68506407c1baeb *R/scf_plot_dist.R
+f7172d275ff775196c4104f3edfdebe7 *R/scf_plot_cbar.R
+6fdf367d0f68b14700f5c03db15fc4be *R/scf_plot_dbar.R
+3aabd8ef63e4363ed8f80e5af11a283c *R/scf_plot_dist.R
 748ea7d8e3cc3f59894fa9e7455ad6bd *R/scf_plot_hex.R
 48763b313dac9d6fe7b9aa29eb9324c5 *R/scf_plot_hist.R
 7ee0df6eb76631d20bb9bd1089c96870 *R/scf_plot_smooth.R
@@ -37,6 +38,7 @@ db83414812d54d8fffcf96980cc606e3 *R/scf_subset.R
 c24fe94603255f18c8d474390c23ec1a *R/scf_update.R
 279b0314c713c07590f2f7383c16b54e *R/scf_update_by_implicate.R
 7b28fcf7cd71232a03901fa857b9772b *R/scf_xtab.R
+b2bbb9de7ab70b9dc0c0e4453c6580fc *R/utils-weighted.R
 d455813327c571948e2bd264033a05ee *R/zzz.R
 023b3975551bd6d5b98dd97ddd16ad05 *README.md
 9d40159f50a5fc9949cbfe95a2884126 *build/partial.rdb
@@ -46,7 +48,7 @@ d9cbe2077a4e4a355004fc015763d120 *inst/CITATION
 d0746cb9fc83f8de83e73e631f14e0ee *inst/doc/SCF-guide.R
 ecde35eb790bdb902bf5cb60d3b30e71 *inst/doc/SCF-guide.Rmd
 d6987a89508852d48c23c1957b6160cb *inst/doc/SCF-guide.html
-b808b732bd271292e2b20a5e00600198 *inst/extdata/scf2022_mock_raw.rds
+ca09ca022a5fdd459bc15558afda300c *inst/extdata/scf2022_mock_raw.rds
 e38fd39c6051fab02e41c5838d0ecc10 *man/scf.Rd
 a56e7735bf247a31e1c489d679f628e5 *man/scf_MIcombine.Rd
 61d734f607cd4b41b0bb0cc8ff40da98 *man/scf_corr.Rd
@@ -63,7 +65,7 @@ eea0030742a755b189db6ecf8bae4279 *man/scf_load.Rd
 b44f54387a8d338d0574e75b8a6f9bf7 *man/scf_median.Rd
 6dab9a3fc6c4b99069a07dd12805f0f4 *man/scf_model_result_methods.Rd
 672fcf7d6088ab2f04fdf381a82dc0e1 *man/scf_ols.Rd
-2d1be3c867c06ca9c4ce604f77cad92c *man/scf_pctile_sum.Rd
+3b41b31154c3c6dba5715f2b7d51d7bf *man/scf_pctile_sum.Rd
 5f5e65761073463910eb05e87808eca5 *man/scf_percentile.Rd
 ac2ffa67432faab32f3a9f953f3886a8 *man/scf_plot_bbar.Rd
 af08fad953b016ff376af0b14be2416a *man/scf_plot_cbar.Rd

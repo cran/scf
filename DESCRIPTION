@@ -1,6 +1,6 @@
 Package: scf
 Title: Analyzing the Survey of Consumer Finances
-Version: 1.0.8
+Version: 1.0.10
 Authors@R: 
     c(person("Joseph","Cohen", role = c("aut","cre"),
              email = "joseph.cohen@qc.cuny.edu"))
@@ -22,8 +22,8 @@ Config/testthat/edition: 3
 Encoding: UTF-8
 RoxygenNote: 7.3.3
 NeedsCompilation: no
-Packaged: 2026-05-13 22:37:20 UTC; jcohen
+Packaged: 2026-05-20 17:18:48 UTC; jcohen
 Author: Joseph Cohen [aut, cre]
 Maintainer: Joseph Cohen <joseph.cohen@qc.cuny.edu>
 Repository: CRAN
-Date/Publication: 2026-05-14 13:50:07 UTC
+Date/Publication: 2026-05-21 07:20:02 UTC
