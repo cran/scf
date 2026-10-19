@@ -16,7 +16,7 @@ scf_plot_dbar(
 )
 }
 \arguments{
-\item{design}{A \code{scf_mi_survey} object created by \code{\link[=scf_load]{scf_load()}}. Must contain valid implicates.}
+\item{design}{A \code{scf_mi_survey} object from \code{\link[=scf_load]{scf_load()}}.}
 
 \item{variable}{A one-sided formula specifying a categorical variable (e.g., \code{~racecl}).}
 
@@ -36,44 +36,23 @@ scf_plot_dbar(
 A \code{ggplot2} object representing the pooled bar chart.
 }
 \description{
-Creates a bar chart that visualizes the distribution of a discrete variable.
+Plots the percent of households in each category of a discrete variable.
 }
-\section{Implementation}{
-
-This function internally calls \code{\link[=scf_freq]{scf_freq()}} to compute population proportion
-estimates, which are then plotted using \code{ggplot2::geom_col()}. The default
-output is scaled to percent and can be customized via title, axis labels,
-angle, and color.
+\details{
+Use it to show how households divide across categories, such as education
+levels. Estimates come from \code{\link[=scf_freq]{scf_freq()}}.
 }
-
-\section{Details}{
-
-Produces a bar chart of category proportions from a one-way tabulation,
-pooled across SCF implicates using \code{\link[=scf_freq]{scf_freq()}}. This function summarizes
-weighted sample composition and communicates categorical distributions
-effectively in descriptive analysis.
-}
-
-\section{Dependencies}{
-
-Requires the \code{ggplot2} package.
-}
-
 \examples{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
-td <- tempfile("plot_dbar_")
+\dontshow{
+td <- tempfile()
 dir.create(td)
-
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
 scf2022 <- scf_load(2022, data_directory = td)
-
-# Example for real analysis: Bar chart of education categories
+}
+# Bar chart of education categories
 scf_plot_dbar(scf2022, ~edcl)
-
-# Do not implement these lines in real analysis: Cleanup for package check
-unlink(td, recursive = TRUE, force = TRUE)
+\dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 
 }
 \seealso{

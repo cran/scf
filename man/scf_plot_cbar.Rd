@@ -9,6 +9,7 @@ scf_plot_cbar(
   yvar,
   xvar,
   stat = "mean",
+  method = c("implicate", "stack"),
   title = NULL,
   xlab = NULL,
   ylab = NULL,
@@ -26,6 +27,9 @@ scf_plot_cbar(
 
 \item{stat}{\code{"mean"} (default), \code{"median"}, or a quantile (numeric between 0 and 1).}
 
+\item{method}{For medians and percentiles, \code{"implicate"} (default) or
+\code{"stack"}. See \code{\link[=scf_percentile]{scf_percentile()}}.}
+
 \item{title}{Plot title (optional).}
 
 \item{xlab}{X-axis label (optional).}
@@ -42,41 +46,26 @@ scf_plot_cbar(
 A \code{ggplot2} object.
 }
 \description{
-Computes and plots a grouped summary statistic (either a mean, median, or
-quantile) for a continuous variable across a discrete factor. Estimates are
-pooled across implicates using \code{\link[=scf_mean]{scf_mean()}}, \code{\link[=scf_median]{scf_median()}}, or
-\code{\link[=scf_percentile]{scf_percentile()}}. Use this function to visualize the bivariate relationship
-between a discrete and a continuous variable.
+Plots a mean, median, or percentile of a continuous variable for each group.
 }
-\section{Implementation}{
-
-The user specifies a continuous outcome (\code{yvar}) and a discrete grouping
-variable (\code{xvar}) via one-sided formulas. Group means are plotted by default.
-Medians or other percentiles can be specified via the \code{stat} argument.
-
-Results are plotted using \code{ggplot2::geom_col()}, styled with \code{\link[=scf_theme]{scf_theme()}},
-and optionally customized with additional arguments (e.g., axis labels,
-color, angles).
+\details{
+Use it to show how a variable differs across groups, such as median net
+worth by education. Bar heights are point estimates from \code{\link[=scf_mean]{scf_mean()}},
+\code{\link[=scf_median]{scf_median()}}, or \code{\link[=scf_percentile]{scf_percentile()}} with \code{by}; run those functions for
+standard errors. Use \code{method = "stack"} for medians and percentiles that
+match the Fed's published tables.
 }
-
 \examples{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
-td <- tempfile("plot_cbar_")
+\dontshow{
+td <- tempfile()
 dir.create(td)
-
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
 scf2022 <- scf_load(2022, data_directory = td)
-
-# Example for real analysis: Plot mean net worth by education level
-scf_plot_cbar(scf2022, ~networth, ~edcl, stat = "mean")
-
-# Example for real analysis: Visualize 90th percentile of income by education
+}
+# Visualize 90th percentile of income by education
 scf_plot_cbar(scf2022, ~income, ~edcl, stat = 0.9, fill = "#D55E00")
-
-# Do not implement these lines in real analysis: Cleanup for package check
-unlink(td, recursive = TRUE, force = TRUE)
+\dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 
 }
 \seealso{

@@ -4,72 +4,73 @@
 \alias{scf_median}
 \title{Estimate the Population Median of a Continuous SCF Variable}
 \usage{
-scf_median(scf, var, by = NULL, verbose = FALSE)
+scf_median(
+  scf,
+  var,
+  by = NULL,
+  verbose = FALSE,
+  method = c("implicate", "stack"),
+  variance = "fed"
+)
 }
 \arguments{
-\item{scf}{A \code{scf_mi_survey} object created by \code{\link[=scf_load]{scf_load()}}. Must contain five implicates.}
+\item{scf}{A \code{scf_mi_survey} object from \code{\link[=scf_load]{scf_load()}}.}
 
 \item{var}{A one-sided formula specifying the continuous variable of interest (e.g., \code{~networth}).}
 
 \item{by}{Optional one-sided formula for a categorical grouping variable.}
 
 \item{verbose}{Logical; if TRUE, show implicate-level results.}
+
+\item{method}{\code{"implicate"} (default) or \code{"stack"}. See Details.}
+
+\item{variance}{\code{"fed"} (default) or \code{"rubin"}: how the sampling variance
+is combined across implicates. See \link{scf_variance}. Most users can leave
+this alone.}
 }
 \value{
-A list of class \code{"scf_median"} with:
+A list of class \code{c("scf_median", "scf_percentile")} with:
 \describe{
-\item{results}{A data frame with pooled medians, standard errors, and range across implicates.}
+\item{results}{A data frame with pooled medians (\code{quantile} is 0.5),
+standard errors, and range across implicates. With \code{method = "stack"},
+\code{se}, \code{min}, and \code{max} are \code{NA} and \code{imps} is \code{NULL}.
+\code{n} is the number of sample households (unweighted) in each row,
+averaged over implicates.
+Groups of 10 or fewer households give a warning.}
 \item{imps}{A list of implicate-level results.}
 \item{aux}{Variable and grouping metadata.}
 }
 }
 \description{
-Estimates the median (50th percentile) of a continuous SCF variable. Use this
-operation to characterize a typical or average value.  In contrast to
-\code{\link[=scf_mean]{scf_mean()}}, this function is both uninfluenced by, and insensitive to,
-outliers.
+Estimates the weighted median of a continuous variable, overall or by group.
 }
-\section{Implementation}{
+\details{
+Use it for skewed variables such as wealth and income, where it describes
+the typical household better than the mean. Half of households are below
+the estimate and half above. Summary dollar variables, such as
+\code{networth}, are in the data's dollar year (see \code{\link[=scf_load]{scf_load()}}); raw \code{x}
+variables are in nominal dollars (see \code{\link[=scf_real]{scf_real()}}).
 
-This function wraps \code{\link[=scf_percentile]{scf_percentile()}} with \code{q = 0.5}. The user supplies a
-\code{scf_mi_survey} object and a one-sided formula for the variable of interest,
-with an optional grouping formula. Output includes pooled medians,
-standard errors, min/max across implicates, and implicate-level values.
-Point estimates are the mean of the five implicate medians. Standard errors
-are computed using the Survey of Consumer Finances convention described
-below, not Rubin’s Rules.
+Calls \code{\link[=scf_percentile]{scf_percentile()}} with \code{q = 0.5}. With \code{method = "implicate"}, the
+estimate is the mean of the five implicate medians; the standard error
+combines sampling and imputation variance (see \link{scf_variance}). With
+\code{method = "stack"}, the five implicates are stacked and one weighted median
+is taken, as in the Fed's published tables; no standard error is given.
+The two can differ in small groups.
 }
-
-\section{Statistical Notes}{
-
-Median estimates follow the Federal Reserve Board’s SCF variance convention.
-For each implicate, the median is computed with replicate weights via
-\code{\link[survey:svyquantile]{survey::svyquantile()}}. The pooled estimate is the average of the five
-implicate medians. The pooled variance is
-V_total = V1 + ((m + 1) / m) * B,
-where V1 is the replicate-weight sampling variance from the first implicate
-and B is the between-implicate variance of the five implicate medians, with
-m = 5 implicates. The reported standard error is sqrt(V_total). This matches
-the Federal Reserve Board's published SAS macro for SCF descriptive
-statistics and is not Rubin’s Rules.
-}
-
 \examples{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
-td <- tempfile("median_")
+\dontshow{
+td <- tempfile()
 dir.create(td)
-
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
 scf2022 <- scf_load(2022, data_directory = td)
-
-# Example for real analysis: Estimate medians
+}
+# Estimate medians
 scf_median(scf2022, ~networth)
 scf_median(scf2022, ~networth, by = ~edcl)
-
-# Do not implement these lines in real analysis: Cleanup for package check
-unlink(td, recursive = TRUE, force = TRUE)
+scf_median(scf2022, ~networth, method = "stack")
+\dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 
 }
 \seealso{

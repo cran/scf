@@ -19,6 +19,10 @@ scf2022 <- scf_load(2022, data_directory = vtd)
 # scf2022 <- scf_load(2022)
 
 ## -----------------------------------------------------------------------------
+scf2022
+scf2022$dollar_year
+
+## -----------------------------------------------------------------------------
 scf2022 <- scf_update(scf2022,
   senior       = age >= 65,
   female       = factor(hhsex, levels = 1:2, labels = c("Male", "Female")),
@@ -26,8 +30,7 @@ scf2022 <- scf_update(scf2022,
   networth     = ifelse(networth > 1, networth, 1),
   log_networth = log(networth),
   income       = ifelse(income > 1, income, 1),
-  log_income   = log(income),
-  npeople      = x101
+  log_income   = log(income)
 )
 
 ## ----eval = FALSE-------------------------------------------------------------
@@ -37,14 +40,30 @@ scf2022 <- scf_update(scf2022,
 # })
 
 ## -----------------------------------------------------------------------------
+seniors <- scf_subset(scf2022, age >= 65)
+scf_median(seniors, ~networth)
+
+## ----eval = FALSE-------------------------------------------------------------
+# scf2016 <- scf_real(scf2016, ~x5702 + x3915, income = ~x5702)
+
+## -----------------------------------------------------------------------------
 scf_mean(scf2022, ~networth, by = ~senior)
 scf_median(scf2022, ~income, by = ~female)
 scf_percentile(scf2022, ~networth, q = 0.9)
 scf_percentile(scf2022, ~networth, q = 0.75, by = ~female)
 
 ## -----------------------------------------------------------------------------
+scf_pctile_sum(scf2022, ~networth, probs = c(0, 0.5, 0.9, 1),
+               labels = c("bottom50", "50-90", "top10"),
+               method = "stack", stat = "mean")
+
+## -----------------------------------------------------------------------------
 scf_freq(scf2022, ~senior)
 scf_xtab(scf2022, ~senior, ~female, scale = "col")
+
+## -----------------------------------------------------------------------------
+scf_ratio(scf2022, ~networth, ~income, by = ~senior)
+scf_corr(scf2022, ~log_income, ~log_networth)
 
 ## -----------------------------------------------------------------------------
 scf_ttest(scf2022, ~networth, mu = 250000)
@@ -68,15 +87,15 @@ m_med <- scf_quantreg(scf2022, log_networth ~ age + senior, tau = 0.50)
 print(m_med)
 
 ## -----------------------------------------------------------------------------
-# 75th percentile
-m_75 <- scf_quantreg(scf2022, log_networth ~ age + senior, tau = 0.75)
+# 75th percentile, with fast standard errors (see below)
+m_75 <- scf_quantreg(scf2022, log_networth ~ age + senior, tau = 0.75,
+                     se = "nid")
 summary(m_75)
 
 ## ----eval = FALSE-------------------------------------------------------------
-# # Replication-based variance (recommended for publication; slow)
-# m_rep <- scf_quantreg(scf2022, log_networth ~ age + senior,
-#                        tau = 0.50, se = "replicate")
-# summary(m_rep)
+# # Fast standard errors while exploring
+# m_quick <- scf_quantreg(scf2022, log_networth ~ age + senior,
+#                         tau = 0.50, se = "nid")
 
 ## -----------------------------------------------------------------------------
 scf_regtable(m_med, m_75,
@@ -96,6 +115,7 @@ scf_plot_dbar(scf2022, ~senior)
 scf_plot_bbar(scf2022, ~female, ~rich, scale = "percent")
 scf_plot_cbar(scf2022, ~networth, ~edcl, stat = "median")
 scf_plot_dist(scf2022, ~age, bins = 10)
+scf_plot_hist(scf2022, ~networth)
 scf_plot_smooth(scf2022, ~age)
 scf_plot_hex(scf2022, ~income, ~networth)
 
@@ -106,6 +126,11 @@ scf_implicates(freq_table, long = TRUE)
 ## ----eval = FALSE-------------------------------------------------------------
 # m <- scf_ols(scf2022, log_networth ~ age)
 # summary(m$imps[[1]])   # first implicate svyglm object
+
+## -----------------------------------------------------------------------------
+SE(m2)
+confint(m2)
+SE(scf_mean(scf2022, ~networth, by = ~senior))
 
 ## ----include = FALSE----------------------------------------------------------
 try(unlink(file.path(vtd, "scf2022.rds"), force = TRUE), silent = TRUE)

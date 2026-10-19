@@ -18,13 +18,14 @@ scf_plot_smooth(
 )
 }
 \arguments{
-\item{design}{A \code{scf_mi_survey} object created by \code{\link[=scf_load]{scf_load()}}.}
+\item{design}{A \code{scf_mi_survey} object from \code{\link[=scf_load]{scf_load()}}.}
 
 \item{variable}{A one-sided formula specifying a continuous variable (e.g., \code{~networth}).}
 
-\item{binwidth}{Optional bin width. Default uses Freedman–Diaconis rule.}
+\item{binwidth}{Optional bin width. Default uses Freedman-Diaconis rule.}
 
-\item{xlim}{Optional numeric vector of length 2 to truncate axis.}
+\item{xlim}{Optional numeric vector of length 2. Limits the plotted range;
+shares are still computed over all households.}
 
 \item{method}{Character. Smoothing method: \code{"loess"} (default) or \code{"lm"}.}
 
@@ -42,36 +43,33 @@ scf_plot_smooth(
 A \code{ggplot2} object.
 }
 \description{
-Draws a smoothed distribution plot of a continuous variable in the SCF. Use
-this function to visualize a single continuous variable's distribution.
+Plots a smoothed curve of the share of households near each value.
 }
-\section{Implementation}{
-
-Visualizes the weighted distribution of a continuous SCF variable by stacking implicates,
-binning observations, and smoothing pooled proportions. This function is useful for
-examining distribution shape, skew, or modality in variables like income or wealth.
-
-All implicates are stacked and weighted, binned across a data-driven or user-specified
-bin width. Each bin's weight share is calculated, and a smoothing curve is fit to
-the resulting pseudo-density.
+\details{
+Use it to see the shape, skew, or peaks of a variable such as age or
+income. The curve shows shape, not exact shares. The implicates are
+stacked with weights divided by five and binned (by default with the
+Freedman-Diaconis width), and a smoothing curve is fit to the bin shares.
 }
-
 \examples{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
-td <- tempfile("plot_smooth_")
+\dontshow{
+td <- tempfile()
 dir.create(td)
-
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
 scf2022 <- scf_load(2022, data_directory = td)
-
-# Example for real analysis: Plot smoothed distribution
-scf_plot_smooth(scf2022, ~networth, xlim = c(0, 2e6),
-                method = "loess", span = 0.25)
-     
-# Do not implement these lines in real analysis: Cleanup for package check           
-unlink(td, recursive = TRUE, force = TRUE)
+}
+\donttest{
+# Plot smoothed distribution
+scf_plot_smooth(
+  scf2022,
+  ~networth,
+  xlim = c(0, 2e6),
+  method = "loess",
+  span = 0.25
+)
+}
+\dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 
 }
 \seealso{

@@ -4,56 +4,59 @@
 \alias{scf_mean}
 \title{Estimate Mean in Multiply-Imputed SCF Data}
 \usage{
-scf_mean(scf, var, by = NULL, verbose = FALSE)
+scf_mean(scf, var, by = NULL, verbose = FALSE, variance = "fed")
 }
 \arguments{
-\item{scf}{A scf_mi_survey object created with \code{\link[=scf_load]{scf_load()}}. Must contain five replicate-weighted implicates.}
+\item{scf}{A \code{scf_mi_survey} object from \code{\link[=scf_load]{scf_load()}}.}
 
 \item{var}{A one-sided formula identifying the continuous variable to summarize (e.g., ~networth).}
 
 \item{by}{Optional one-sided formula specifying a discrete grouping variable for stratified means.}
 
 \item{verbose}{Logical. If TRUE, include implicate-level results in print output. Default is FALSE.}
+
+\item{variance}{\code{"fed"} (default) or \code{"rubin"}: how the sampling variance
+is combined across implicates. See \link{scf_variance}. Most users can leave
+this alone.}
 }
 \value{
 A list of class "scf_mean" with:
 \describe{
-\item{results}{Pooled estimates with standard errors and range across implicates. One row per group, or one row total.}
+\item{results}{Pooled estimates with standard errors and range across implicates. One row per group, or one row total.
+\code{n} is the number of sample households (unweighted) in each row,
+averaged over implicates.
+Groups of 10 or fewer households give a warning.}
 \item{imps}{A named list of implicate-level estimates.}
 \item{aux}{Variable and group metadata.}
 }
 }
 \description{
-Returns the population-level estimate of a continuous variable's weighted
-mean across the Survey's five implicates. Use this operation to derive an
-estimate of a population's 'typical' or 'average' score on a continuous
-variable.
+Estimates the weighted mean of a continuous variable, overall or by group.
 }
-\section{Details}{
+\details{
+Use it for the average value of a variable in the population or a group.
+The estimate is in the variable's units. Summary dollar variables, such as
+\code{networth}, are in the data's dollar year (see \code{\link[=scf_load]{scf_load()}}); raw \code{x}
+variables are in nominal dollars (see \code{\link[=scf_real]{scf_real()}}).
+\code{min} and \code{max} give the range of the implicate estimates.
+Wealth and income are right-skewed, so a few very wealthy households pull
+their means well above their medians; report \code{\link[=scf_median]{scf_median()}} as well.
 
-The mean is a measure of central tendency that represents the arithmetic average of a distribution.
-It is most appropriate when the distribution is symmetric and not heavily skewed.
-Unlike the median, the mean is sensitive to extreme values, which may distort interpretation in the presence of outliers.
-Use this function to describe the “typical” value of a continuous variable in the population or within subgroups.
+The mean is estimated in each implicate with \code{survey::svymean()} and pooled
+across implicates (see \link{scf_variance}).
 }
-
 \examples{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
-td <- tempfile("mean_")
+\dontshow{
+td <- tempfile()
 dir.create(td)
-
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
 scf2022 <- scf_load(2022, data_directory = td)
-
-# Example for real analysis: Estimate means
+}
+# Estimate means
 scf_mean(scf2022, ~networth)
 scf_mean(scf2022, ~networth, by = ~edcl)
-
-# Do not implement these lines in real analysis: Cleanup for package check
-unlink(td, recursive = TRUE, force = TRUE)
-
+\dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 
 }
 \seealso{

@@ -7,42 +7,52 @@
 scf_load(min_year, max_year = min_year, data_directory = ".")
 }
 \arguments{
-\item{min_year}{Integer. First SCF year to load (1989–2022, divisible by 3).}
+\item{min_year}{Integer. First SCF year to load (1989 to 2025).}
 
 \item{max_year}{Integer. Last SCF year to load. Defaults to \code{min_year}.}
 
-\item{data_directory}{Character. Directory containing \code{.rds} files or a
-full path to a single \code{.rds} file. Defaults to the current working directory \code{"."}.
+\item{data_directory}{Character. Directory containing the \code{.rds} files.
+Defaults to the current working directory \code{"."}.
 For examples and tests, use \code{tempdir()} to avoid leaving files behind.}
 }
 \value{
-Invisibly returns a \code{scf_mi_survey} (or named list if multiple years).
-Attributes: \code{mock} (logical), \code{year}, \code{n_households}.
+Invisibly, a \code{scf_mi_survey} object (or a named list of them if several years
+are loaded), with elements \code{mi_design}, \code{year}, \code{n_households}, and
+\code{dollar_year}, and a
+logical \code{mock} attribute.
 }
 \description{
-Converts SCF \code{.rds} files prepared by \code{scf_download()} into \code{scf_mi_survey}
-objects. Each object wraps five implicates per year in replicate-weighted,
-multiply-imputed survey designs suitable for use with \code{scf_} functions.
+Loads \code{.rds} files made by \code{\link[=scf_download]{scf_download()}} as \code{scf_mi_survey} objects.
 }
-\section{Implementation}{
+\details{
+Start every analysis here and assign the result, for example
+\code{scf2022 <- scf_load(2022)}. Printing the object shows the year, the number
+of households represented, and the number of implicates.
 
-Provide a year or range and either (1) a directory containing \verb{scf<year>.rds}
-files, or (2) a full path to a single \code{.rds} file. Files must contain five
-implicate data frames with columns \code{wgt} and \code{wt1b1..wt1bK} (typically K=999).
+Each file holds five implicate data frames with the weight \code{wgt} and
+replicate weights \code{wt1b1} to \code{wt1b999}. Each implicate's design uses
+\code{wgt * 5}, because the Fed divides \code{wgt} by 5 so the five implicates sum to
+the population. The \code{wgt} column is not changed.
+
+The object records the dollar year of the summary variables, which
+\code{\link[=scf_real]{scf_real()}} and \code{\link[=scf_nominal]{scf_nominal()}} use. Files made by older versions of the
+package do not store it, so it is found from the data. Loading years in
+different dollar years gives a warning.
 }
-
 \examples{
-# Using with CRAN-compliant mock data:
-# Use functions `scf_download()` and `scf_load()`
-td <- tempfile("load_")
+\dontshow{
+td <- tempfile()
 dir.create(td)
-
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
-scf2022 <- scf_load(2022, data_directory = td)
-
-# Do not implement these lines in real analysis: Cleanup for package check
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
+old <- setwd(td)
+}
+scf2022 <- scf_load(2022)
+scf2022
+\dontshow{
+setwd(old)
 unlink(td, recursive = TRUE, force = TRUE)
+}
 
 }
 \seealso{

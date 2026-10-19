@@ -1,28 +1,26 @@
 #' Download and Prepare SCF Microdata for Local Analysis
 #'
-#' Downloads SCF public-use microdata from official servers.  For each year,
-#' this function retrieves five implicates, merges them with replicate weights
-#' and official summary variables, and saves them as `.rds` files ready for use
-#' with [scf_load()].
+#' Downloads SCF public-use data from the Federal Reserve and saves one `.rds`
+#' file per year for [scf_load()].
 #'
-#' @section Implementation:
-#' This function downloads from official servers three types of files for each
-#' year:
-#' - five versions of the dataset (one per implicate), each stored as a separate data frame in a list
-#' - a table of replicate weights, and
-#' - a data table with official derivative variables
+#' @details
+#' Run it once per survey year, before [scf_load()]. Requires an internet
+#' connection. Files go to the working directory; years already on disk are
+#' skipped unless `overwrite = TRUE`.
 #'
-#' These tables are collected to a list and saved to an `.rds` format file in
-#' the working directory.  By default, the function downloads all available
-#' years.
+#' For each year, the function downloads the full public data, the summary
+#' extract, and the replicate weights; merges them by household; multiplies
+#' each replicate weight by its multiplicity factor; and saves the five
+#' implicates as a list.
 #'
-#' @section Details:
-#' The SCF employs multiply-imputed data sets to address unit-level missing
-#' data. Each household appears in one of five implicates. This function ensures
-#' all implicates are downloaded, merged, and prepared for downstream analysis
-#' using [scf_load()], [scf_design()], and the `scf` workflow.
+#' The Fed puts the summary variables of every year, such as `income` and
+#' `networth`, in dollars of its latest survey: 2025 for files downloaded
+#' since October 2026, 2022 before that. Each file records this as its
+#' dollar year, which [scf_load()] reads.
 #'
-#' @param years Integer vector of SCF years to download (e.g., `c(2016, 2019)`). Must be triennial from 1989 to 2022.
+#' @param years Integer vector of SCF years to download (e.g., `c(2016, 2019)`).
+#'   Defaults to all 13 waves, 1989 to 2025. Years that are not survey years
+#'   are ignored.
 #' @param overwrite Logical. If `TRUE`, re-download and overwrite existing `.rds` files. Default is `FALSE`.
 #' @param verbose Logical. If `TRUE`, display progress messages. Default is `TRUE`.
 #'
@@ -30,46 +28,22 @@
 #' Each file contains a list of five implicate data frames ready for use with [scf_load()].
 #'
 #' @seealso [scf_load()], [scf_design()], [scf_update()]
-#' 
+#'
 #' @examples
-#' if (FALSE) {
-#'   # Download and prepare SCF data for 2022
-#'   td <- tempfile("download_")
-#'   dir.create(td)
-#' 
-#'   old <- getwd()
-#'   setwd(td)
-#'   scf_download(2022)
-#'
-#'   # Load into a survey design object
-#'   scf2022 <- scf_load(2022, data_directory = td)
-#'
-#'   # Cleanup for package check
-#'   unlink(td, recursive = TRUE, force = TRUE)
-#'   setwd(old)
+#' if (interactive()) {
+#'   # Download the 2025 survey into the working directory, then load it
+#'   scf_download(2025)
+#'   scf2025 <- scf_load(2025)
 #' }
-
-#' 
+#'
 #' @references
-#' U.S. Federal Reserve. Codebook for 2022 Survey of Consumer Finances.
-#'   https://www.federalreserve.gov/econres/scfindex.htm
+#' Board of Governors of the Federal Reserve System. Codebook for the 2025
+#'   Survey of Consumer Finances.
+#'   <https://www.federalreserve.gov/econres/files/codebk2025.txt>
 #'
 #' @export
-scf_download <- function(years = seq(1989, 2022, 3), overwrite = FALSE, verbose = TRUE) {
-  pkgs <- c("httr", "haven", "utils")
-  missing <- pkgs[!vapply(pkgs, requireNamespace, FUN.VALUE = logical(1), quietly = TRUE)]
-  if (length(missing)) {
-     stop(
-       sprintf(
-             "Missing package%s: %s. Please install before using scf_download().",
-             if (length(missing) > 1) "s" else "",
-             paste(missing, collapse = ", ")
-           ),
-         call. = FALSE
-       )
-    }
-
-  years <- intersect(years, seq(1989, 2022, 3))
+scf_download <- function(years = seq(1989, 2025, 3), overwrite = FALSE, verbose = TRUE) {
+  years <- intersect(years, .scf_years)
   output_files <- character()
 
   url_map <- list(
@@ -131,7 +105,8 @@ scf_download <- function(years = seq(1989, 2022, 3), overwrite = FALSE, verbose 
     download_and_unzip <- function(url, zip_name) {
       zip_path <- file.path(tmpdir, zip_name)
       tryCatch({
-        httr::GET(url, httr::write_disk(zip_path, overwrite = TRUE))
+        resp <- httr::GET(url, httr::write_disk(zip_path, overwrite = TRUE))
+        httr::stop_for_status(resp)
         unzip(zip_path, exdir = tmpdir)
         unlink(zip_path)
         TRUE
@@ -198,6 +173,7 @@ scf_download <- function(years = seq(1989, 2022, 3), overwrite = FALSE, verbose 
     }
     rw <- rw[, c("yy1", paste0("wt1b", 1:999))]
     merged <- lapply(implicates, function(df) merge(df, rw, by = "yy1"))
+    attr(merged, "dollar_year") <- .scf_detect_dollar_year(merged[[1]], year)
     saveRDS(merged, out_file)
     output_files <- c(output_files, out_file)
 

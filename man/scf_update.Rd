@@ -4,57 +4,41 @@
 \alias{scf_update}
 \title{Create or Alter SCF Variables}
 \usage{
-scf_update(object, ...)
+scf_update(.object, ...)
 }
 \arguments{
-\item{object}{A \code{scf_mi_survey} object, typically created by \code{\link[=scf_load]{scf_load()}}.}
+\item{.object}{A \code{scf_mi_survey} object from \code{\link[=scf_load]{scf_load()}}.}
 
 \item{...}{Named expressions assigning new or modified variables using \code{=} syntax.
-Each expression must return a vector of the same length as the implicate data frame.}
+Each must return one value or one value per row. Set a variable to \code{NULL}
+to remove it.}
 }
 \value{
 The input \code{scf_mi_survey} object with \code{mi_design} updated to reflect
-the new or modified variables. All other attributes (\code{year}, \code{n_households},
-\code{mock}) are preserved unchanged.
+the new or modified variables. Other elements (\code{year}, \code{n_households},
+\code{dollar_year}) and the \code{mock} attribute are kept. \code{n_households} is not
+recomputed.
 }
 \description{
-Use this function to create or alter SCF variables once the raw data set has
-been loaded into memory using the \code{scf_load()} function. This function
-updates an \code{scf_mi_survey} object by evaluating transformations within each
-implicate, and then returning a new object with the new or amended variables.
-
-Most of the time, you can use \code{scf_update()} to define variables based on
-simple logical conditions, arithmetic transformations, or categorical
-binning. These rules are evaluated separately in each implicate, using the
-same formula. However, if the transformation you want to apply depends on the
-distribution of the data within each implicate, such as computing an
-average percentile or ranking households across all implicates,
-this function will not suffice. In those cases, use
-\code{\link[=scf_update_by_implicate]{scf_update_by_implicate()}} to write a custom function that operates on each
-implicate individually.
+Creates or changes variables in every implicate.
 }
-\section{Usage}{
-
-Use \code{scf_update()} during data wrangling to clean, create, or alter variables before calculating
-statistics or running models. The function is useful when the analyst wishes to:
-\itemize{
-\item Recode missing values that are coded as numeric data
-\item Recast variables that are not in the desired format (e.g., converting a numeric variable to a factor)
-\item Create new variables based on existing ones (e.g., calculating ratios, differences, or indicators)
+\details{
+Use it before analysis to recode values, convert types, or create ratios,
+differences, and indicators. Expressions are evaluated in order in each
+implicate's data. Set a variable to \code{NULL} to remove it. The result is a
+new object; assign it back to keep the changes. For variables that depend
+on the distribution within each implicate, such as ranks or percentile
+cutoffs, use \code{\link[=scf_update_by_implicate]{scf_update_by_implicate()}}.
 }
-}
-
 \examples{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
-td <- tempfile("update_")
+\dontshow{
+td <- tempfile()
 dir.create(td)
-
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
 scf2022 <- scf_load(2022, data_directory = td)
-
-# Example for real analysis: Create a binary indicator for being over age 50
+}
+# Create a binary indicator for being over age 50
 scf2022 <- scf_update(scf2022,
   over50 = age > 50
 )
@@ -63,9 +47,7 @@ scf2022 <- scf_update(scf2022,
 scf2022 <- scf_update(scf2022,
   log_income = log(income + 1)
 )
-
-# Do not implement these lines in real analysis: Cleanup for package check
-unlink(td, recursive = TRUE, force = TRUE)
+\dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 
 }
 \seealso{

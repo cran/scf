@@ -7,13 +7,13 @@
 scf_plot_hex(design, x, y, bins = 50, title = NULL, xlab = NULL, ylab = NULL)
 }
 \arguments{
-\item{design}{A \code{scf_mi_survey} object created by \code{\link[=scf_load]{scf_load()}}.}
+\item{design}{A \code{scf_mi_survey} object from \code{\link[=scf_load]{scf_load()}}.}
 
 \item{x}{A one-sided formula for the x-axis variable (e.g., \code{~income}).}
 
 \item{y}{A one-sided formula for the y-axis variable (e.g., \code{~networth}).}
 
-\item{bins}{Integer. Number of hexagonal bins along the x-axis. Default is \code{50}.}
+\item{bins}{Integer. Number of hexagonal bins in each direction. Default is \code{50}.}
 
 \item{title}{Optional character string for the plot title.}
 
@@ -22,54 +22,33 @@ scf_plot_hex(design, x, y, bins = 50, title = NULL, xlab = NULL, ylab = NULL)
 \item{ylab}{Optional y-axis label. Defaults to the variable name.}
 }
 \value{
-A \code{ggplot2} object displaying a Rubin-pooled hexbin plot.
+A \code{ggplot2} object.
 }
 \description{
-Visualizes the bivariate relationship between two continuous SCF variables
-using hexagonal bins.
+Plots the joint distribution of two continuous variables with hexagonal
+bins.
 }
-\section{Implementation}{
-
-The function stacks all implicates into one data frame, retains replicate weights,
-and uses \code{ggplot2::geom_hex()} to produce a density-style scatterplot. The color
-intensity of each hexagon reflects the Rubin-pooled weighted count of households
-in that cell. Missing values are excluded.
-
-This plot is especially useful for visualizing joint distributions with large
-samples and skewed marginals, such as net worth vs. income.
+\details{
+Use it in place of a scatterplot when there are too many points to see.
+Brighter cells hold more households; the color scale is logarithmic. The
+implicates are stacked with weights divided by five. Requires the
+\pkg{hexbin} package.
 }
-
-\section{Aesthetic Guidance}{
-
-This plot uses a log-scale fill and \code{viridis} palette to highlight variation
-in density. To adjust the visual style globally, use \code{\link[=scf_theme]{scf_theme()}} or set it
-explicitly with \code{ggplot2::theme_set(scf_theme())}. For mobile-friendly or
-publication-ready appearance, export the plot at 5.5 x 5.5 inches, 300 dpi.
-}
-
-\section{Dependencies}{
-
-Requires the \code{ggplot2} package. The fill scale uses \code{scale_fill_viridis_c()} from \code{ggplot2}.
-Requires the \pkg{hexbin} package. The function will stop with an error if it is not installed.
-}
-
 \examples{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
-td <- tempfile("plot_hex_")
+\dontshow{
+td <- tempfile()
 dir.create(td)
-
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
 scf2022 <- scf_load(2022, data_directory = td)
-
-# Example for real analysis: Plot hexbin of income vs. net worth
-# Note: mock data has ~75 rows per implicate; hexbin output will be sparse.
+}
+# Plot hexbin of income vs. net worth
+# Note: mock data has 200 rows per implicate; hexbin output will be sparse.
 # Results on full SCF data will show a meaningful joint density.
-scf_plot_hex(scf2022, ~income, ~networth)
-
-# Do not implement these lines in real analysis: Cleanup for package check
-unlink(td, recursive = TRUE, force = TRUE)
+if (requireNamespace("hexbin", quietly = TRUE)) {
+  scf_plot_hex(scf2022, ~income, ~networth)
+}
+\dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 
 }
 \seealso{

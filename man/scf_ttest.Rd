@@ -10,11 +10,12 @@ scf_ttest(
   group = NULL,
   mu = 0,
   alternative = c("two.sided", "less", "greater"),
-  conf.level = 0.95
+  conf.level = 0.95,
+  variance = "fed"
 )
 }
 \arguments{
-\item{design}{A \code{scf_mi_survey} object created by \code{\link[=scf_load]{scf_load()}}.}
+\item{design}{A \code{scf_mi_survey} object from \code{\link[=scf_load]{scf_load()}}.}
 
 \item{var}{A one-sided formula specifying a numeric variable (e.g., \code{~income}).}
 
@@ -25,46 +26,59 @@ scf_ttest(
 \item{alternative}{Character. One of \code{"two.sided"} (default), \code{"less"}, or \code{"greater"}.}
 
 \item{conf.level}{Confidence level for the confidence interval. Default is \code{0.95}.}
+
+\item{variance}{\code{"fed"} (default) or \code{"rubin"}: how the sampling variance
+is combined across implicates. See \link{scf_variance}. Most users can leave
+this alone.}
 }
 \value{
 An object of class \code{scf_ttest} with:
 \describe{
-\item{results}{A data frame with pooled estimate, standard error, t-statistic, degrees of freedom, p-value, and confidence interval.}
+\item{results}{A data frame with pooled estimate, standard error, t-statistic, degrees of freedom, p-value, significance stars, and confidence interval. For two-sample tests, the estimate is the first group minus the second.}
 \item{means}{Group-specific means (for two-sample tests only).}
 \item{fit}{List describing the test type, null hypothesis, confidence level, and alternative.}
+\item{aux}{Survey year, variable name, and dollar year, used by \code{\link[=scf_nominal]{scf_nominal()}}.}
 }
 }
 \description{
-Tests whether the mean of a continuous variable differs from a specified
-value (one-sample), or whether group means differ across a binary factor
-(two-sample). Estimates and standard errors are computed using \code{svymean()}
-within each implicate, then pooled using Rubin’s Rules.  Use this function
-to test hypotheses about means in the SCF microdata.
+Tests a mean against a null value, or the difference between two group
+means.
+}
+\details{
+Use it to test a claim about a mean, such as whether mean income differs
+between two groups. The one-sample estimate is the mean; the two-sample
+estimate is the first group's mean minus the second's. A small p-value
+means a difference this large is unlikely under the null hypothesis; the
+confidence interval gives the plausible range. Means of wealth and income
+are dominated by the top of the distribution and may not reflect the
+typical household.
+
+Means are estimated in each implicate with \code{survey::svymean()} and pooled
+(see \link{scf_variance}). The two-sample test accounts for the covariance
+between groups.
 }
 \examples{
-# Do not implement these lines in real analysis:
-# Use functions `scf_download()` and `scf_load()`
-td <- tempfile("ttest_")
+\dontshow{
+td <- tempfile()
 dir.create(td)
-
-src <- system.file("extdata", "scf2022_mock_raw.rds", package = "scf")
-file.copy(src, file.path(td, "scf2022.rds"), overwrite = TRUE)
+file.copy(system.file("extdata", "scf2022_mock_raw.rds", package = "scf"),
+          file.path(td, "scf2022.rds"))
 scf2022 <- scf_load(2022, data_directory = td)
-
-# Wrangle data for example: Derive analysis vars
+}
+\donttest{
+# Derive analysis vars
 scf2022 <- scf_update(scf2022,
-  female = factor(hhsex, levels = 1:2, labels = c("Male","Female")),
+  female = factor(hhsex, levels = 1:2, labels = c("Male", "Female")),
   over50 = age > 50
 )
 
-# Example for real analysis:  One-sample t-test
+# One-sample t-test
 scf_ttest(scf2022, ~income, mu = 75000)
 
-# Example for real analysis:  Two-sample t-test
+# Two-sample t-test
 scf_ttest(scf2022, ~income, group = ~female)
-
-# Do not implement these lines in real analysis: Cleanup for package check
-unlink(td, recursive = TRUE, force = TRUE)
+}
+\dontshow{unlink(td, recursive = TRUE, force = TRUE)}
 
 }
 \seealso{
